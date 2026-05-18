@@ -6,16 +6,16 @@ Welcome to the Cognition Loop. This project bridges the gap between basic conver
 
 Current consumer LLMs are passive systems: they require a user prompt, generate text, and halt. This project shifts that paradigm. Over the next eight weeks, you will engineer an active, autonomous agent capable of reasoning through multi-step problems and executing actions in the real world.
 
-By the end of this project, you will build an orchestration engine capable of executing complex instructions such as:
-> *"Query the internal documentation database for troubleshooting steps regarding error code 404, summarize the fix, and then open a web browser to order a replacement ethernet cable from Amazon."*
+By the end of this project, you will build an orchestration engine capable of executing tasks such as:
+> *"Query the internal documentation database for troubleshooting steps regarding error code 404, summarize the fix, and then open a web browser to order an ethernet cable from Amazon."*
 
 To achieve this, the agent will independently:
 1. Formulate a plan.
 2. Utilize a Retrieval-Augmented Generation (RAG) tool to search internal documents.
-3. Utilize browser automation tools (Selenium/Playwright) to interact with live websites.
+3. Utilize browser automation tools to interact with live websites.
 4. Process the observations and complete the objective without human intervention.
 
-##  Week 1: Required Reading & Technical Resources
+##  Week 1: Reading & Technical Resources
 
 Before writing the control logic, it is critical to understand the underlying architecture of modern AI. Review these resources before starting the tasks.
 
