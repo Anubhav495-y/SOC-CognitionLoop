@@ -7,7 +7,7 @@ Welcome to the Cognition Loop. This project bridges the gap between basic conver
 Current consumer LLMs are passive systems: they require a user prompt, generate text, and halt. This project shifts that paradigm. Over the next eight weeks, you will engineer an active, autonomous agent capable of reasoning through multi-step problems and executing actions in the real world.
 
 By the end of this project, you will build an orchestration engine capable of executing tasks such as:
-> *"Query the internal documentation database for troubleshooting steps regarding error code 404, summarize the fix, and then open a web browser to order an ethernet cable from Amazon."*
+> *"Query the internal documentation database to find the user's preferred music genre, then open a web browser, navigate to YouTube or Spotify, and autonomously search for and play a playlist matching that mood."*
 
 To achieve this, the agent will independently:
 1. Formulate a plan.
