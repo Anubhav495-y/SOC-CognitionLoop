@@ -29,6 +29,11 @@ try:  # RateLimitError moved around between groq SDK versions; degrade gracefull
 except ImportError:  # pragma: no cover - depends on installed SDK version
     RateLimitError = Exception
 
+try:  # raised on a malformed tool call (Llama sometimes emits bad function syntax)
+    from groq import BadRequestError
+except ImportError:  # pragma: no cover
+    BadRequestError = Exception
+
 # Playwright is only needed if a step actually calls web_search. Import lazily
 # so the agent still runs (and stays resumable) on a machine without it.
 try:
@@ -296,11 +301,34 @@ def build_step_context(plan: dict, step: dict) -> list:
     return messages
 
 
+def _is_tool_use_failed(exc) -> bool:
+    """True if this 400 is Groq's 'model emitted a malformed tool call' error."""
+    text = str(exc).lower()
+    return "tool_use_failed" in text or "failed to call a function" in text
+
+
+def _force_final_answer(client: Groq, messages: list) -> str:
+    """Ask for a plain-text answer with no tools -- always resolves a step."""
+    prompt = messages + [
+        {"role": "user", "content": "Give your final answer for this step now in plain text. Do not call any tools."}
+    ]
+    return call_llm(client, prompt).choices[0].message.content or ""
+
+
 def execute_step(client: Groq, plan: dict, step: dict, max_tool_rounds: int = 4) -> str:
     """Run one step through a bounded reason -> act -> observe loop."""
     messages = build_step_context(plan, step)
     for _ in range(max_tool_rounds):
-        response = call_llm(client, messages, tools=TOOLS)
+        try:
+            response = call_llm(client, messages, tools=TOOLS)
+        except BadRequestError as exc:
+            # Llama sometimes emits a malformed tool call that Groq rejects with a
+            # 400 'tool_use_failed'. Don't crash the run -- finish this step with a
+            # plain, tool-free answer instead (graceful degradation).
+            if _is_tool_use_failed(exc):
+                print("    malformed tool call; finishing this step without tools.")
+                return _force_final_answer(client, messages)
+            raise
         msg = response.choices[0].message
         messages.append(msg)
 
@@ -328,11 +356,7 @@ def execute_step(client: Groq, plan: dict, step: dict, max_tool_rounds: int = 4)
             )
 
     # Ran out of tool rounds -- force a final plain-text answer.
-    messages.append(
-        {"role": "user", "content": "Give your final answer for this step now, no tools."}
-    )
-    response = call_llm(client, messages)
-    return response.choices[0].message.content or ""
+    return _force_final_answer(client, messages)
 
 
 # ---------------------------------------------------------------------------
